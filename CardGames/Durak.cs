@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 class Durak 
 {
     //private bool gameRunning = true;
+    private string Winner;
     private static Random rng = new Random();
     private Deck deck;
     private Deck discard;
@@ -15,6 +16,7 @@ class Durak
     private int Turn;
 
     public Durak(int numPlayers) {
+        Winner = "";
         deck = new Deck("durak");
         deck.Shuffle();
         discard = new Deck("hand");
@@ -28,40 +30,125 @@ class Durak
 
         Table = new List<Card?[]>();
         Trump = deck[35].suit;
-        Turn = findFirstTurn();
+        Turn = FindFirstTurn();
 
-        Play();
+        Deal();
+        Console.WriteLine(playerList[0]);
+        Console.WriteLine(playerList[1]);
     }
 
-    private void Play() {
-        Deal();
-        Console.WriteLine(you);
-        Console.WriteLine(playerList[1]);
-        Attack(you, 0);
-        View();
-        Defend(0, 0);
-        View();
-        Console.WriteLine(you);
+    public async Task Play() {
+        while (Winner == "") {
+            // Console.Clear();
+            Console.WriteLine($"Trump: {Trump}");
+            Console.WriteLine($"It's {playerList[Turn].Name}'s turn to attack\n");
+
+            Turn = 0;
+            bool cant = await GetAiInput(playerList[0]);
+            // Turn = 1;
+            await GetAiInput(playerList[1]);
+            break;
+        }  
+    }
+
+    public async Task PlayRound() {
+        Task[] tasks = new Task[playerList.Length];
+
+    }
+
+    private async Task<bool> GetAiInput(Player player) {
+        await Task.Delay(1000);
+
+        // Player is the initial attacker
+        if (Turn == player.TurnId && !player.StartedTurn) {
+            Console.WriteLine($"{player.Name} is attacking");
+            player.StartedTurn = true;
+            int cardIndex = rng.Next(0, player.Hand.Count());
+            Attack(player, cardIndex);
+            View();
+            return true;
+        }
+
+        // Player defends
+        else if ((Turn+1) % playerList.Length == player.TurnId) {
+            Console.WriteLine($"{player.Name} is defending");
+            bool successfulDefense = false;
+            for(int i = 0; i < Table.Count; i++) {
+                if (Table[i][1].Equals(null)) {
+                    for (int j = 0; j < player.Hand.Count(); j++) {
+                        if (Beats(player[j], Table[i][0])) {
+                            Console.WriteLine($"Player card: {player[j]}");
+                            Console.WriteLine($"Table card: {Table[i][0]}");
+                            Console.WriteLine(Beats(player[j], Table[i][0]));
+                            Defend(Table.IndexOf(Table[i]), j);
+                            View();
+                            break;
+                        }
+                    }
+                } 
+            }
+
+            foreach (Card?[] attack in Table) {
+                if (attack[1].Equals(null)) {
+                    successfulDefense = false;
+                }
+            }
+            successfulDefense = true;
+
+            if (!successfulDefense) {
+                Console.WriteLine($"{player.Name} can't respond");
+            }
+            return successfulDefense;
+        }
+
+        // Subsequent attacks
+        else {
+            bool attacked = false;
+            foreach (Card?[] attack in Table) {
+                if (FullAttack(attack)) {
+                    for (int i = 0; i < player.Hand.Count(); i++) {
+                        if (attack[0]?.rank == player[i].rank){ Attack(player, i); attacked = true; }
+                        if (attack[1]?.rank == player[i].rank) { Attack(player, i); attacked = true; }
+                    }
+                } else {
+                    for (int i = 0; i < player.Hand.Count(); i++) {
+                        if (attack[0]?.rank == player[i].rank) { Attack(player, i); attacked = true; }
+                    }
+                }
+            }
+            if(!attacked) { Console.WriteLine($"{player.Name} passes"); }
+            return attacked;
+        }
+    }
+
+    public bool FullAttack(Card?[] attack) {
+        if (attack[1].Equals(null)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private void Attack(Player attacker, int cardIndex) {
         Card?[] attack = new Card?[2];
         attack[0] = attacker[cardIndex];
+        Console.WriteLine($"{attacker.Name} attacks with {attack[0]}");
         Table.Add(attack);
         attacker.Remove(cardIndex);
     }
 
     private void Defend(int attackIndex, int cardIndex) {
-        Player defender = playerList[Turn];
+        Player defender = playerList[(Turn+1) % playerList.Length];
         Card?[] attack = Table[attackIndex];
         Card? responseCard = defender[cardIndex];
+        Console.WriteLine($"{defender.Name} defends with {responseCard}");
         attack[1] = responseCard;
         playerList[Turn].Remove(cardIndex);
     }
 
 
     // The player to go first has the lowest trump card
-    public int findFirstTurn() {
+    public int FindFirstTurn() {
         Player firstPlayer = playerList[0];
         for (int i = 5; i < 13; i++) {
             foreach(Player player in playerList) {
@@ -104,6 +191,7 @@ class Durak
     // Use Deal(target, #cards) to deal a certain number of cards to target
     private void Deal(int target = -1, int numCards = 1) {
         if (target == -1) {
+            Console.WriteLine("Dealing cards");
             for (int i = 0; i < 6; i++) {
                 foreach (Player player in playerList) {
                     player.Hand.Add(deck.draw());
@@ -122,17 +210,17 @@ class Durak
         }
     }
 
-    private bool IsTrump(Card card) {
-        return card.suit == Trump;
+    private bool IsTrump(Card? card) {
+        return card?.suit == Trump;
     }
 
-    private bool Beats(Card Card1, Card Card2) {
+    private bool Beats(Card? Card1, Card? Card2) {
         if (IsTrump(Card1) && !IsTrump(Card2)) {
             return true;
         } else if (!IsTrump(Card1) && IsTrump(Card2)) {
             return false;
-        } else if (Card1.suit == Card2.suit) {
-            return Card1.rank > Card2.rank;
+        } else if (Card1?.suit == Card2?.suit) {
+            return Card1?.rank > Card2?.rank;
         } else {
             return false;
         }

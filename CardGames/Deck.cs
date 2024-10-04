@@ -45,6 +45,10 @@ class Deck
         cards.RemoveAt(index);
     }
 
+    public int Count() {
+        return cards.Count;
+    }
+
     public Deck(string type = "standard") {
         if (type == "standard") {
             for (int suit = 0; suit < 4; suit++) {

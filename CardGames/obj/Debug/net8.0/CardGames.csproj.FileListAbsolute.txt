@@ -12,3 +12,4 @@ C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\refint
 C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.pdb
 C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.genruntimeconfig.cache
 C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\ref\CardGames.dll
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.sourcelink.json
