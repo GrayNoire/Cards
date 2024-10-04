@@ -1,0 +1,14 @@
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\bin\Debug\net8.0\CardGames.exe
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\bin\Debug\net8.0\CardGames.deps.json
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\bin\Debug\net8.0\CardGames.runtimeconfig.json
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\bin\Debug\net8.0\CardGames.dll
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\bin\Debug\net8.0\CardGames.pdb
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.AssemblyInfoInputs.cache
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.AssemblyInfo.cs
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.csproj.CoreCompileInputs.cache
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.dll
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\refint\CardGames.dll
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.pdb
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\CardGames.genruntimeconfig.cache
+C:\Users\tjp05\OneDrive\Documents\GitHub\Cards\CardGames\obj\Debug\net8.0\ref\CardGames.dll
