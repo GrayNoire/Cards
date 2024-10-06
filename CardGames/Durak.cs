@@ -2,6 +2,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+enum Move { }
+
 class Durak 
 {
     //private bool gameRunning = true;
@@ -56,6 +58,41 @@ class Durak
 
     }
 
+
+    private async Task GetMove() {
+        // Player is the initial attacker
+        if (Turn == 0) {
+            Console.WriteLine("Which card would you like to play?");
+            int cardIndex = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine($"You attack with {you[cardIndex]}");
+            Attack(you, cardIndex);
+        } else { // Player is the defender
+            if (Turn == 1) {
+                Console.WriteLine("Which attack are you fending off?");
+                View();
+                int attackIndex = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine("Which card would you like to play?");
+                Console.WriteLine(you);
+                int cardIndex;
+                bool successfulDefense = false;
+                while (!successfulDefense) {
+                    cardIndex = Convert.ToInt32(Console.ReadLine());
+                    successfulDefense = Beats(you[cardIndex], Table[attackIndex][0]);
+                    if (!successfulDefense) {
+                        Console.WriteLine("You must play a card that beats the attack");
+                    }
+                }
+            } else {
+                Console.WriteLine("Which card would you like to play?");
+                int cardIndex = Convert.ToInt32(Console.ReadLine());
+                Attack(playerList[2], cardIndex);
+            }
+        }
+    }
+    
+
+    // Handles the AI's moves
+    // Returns true if the AI successfully attacks or defends
     private async Task<bool> GetAiInput(Player player) {
         await Task.Delay(1000);
 
@@ -77,9 +114,6 @@ class Durak
                 if (Table[i][1].Equals(null)) {
                     for (int j = 0; j < player.Hand.Count(); j++) {
                         if (Beats(player[j], Table[i][0])) {
-                            Console.WriteLine($"Player card: {player[j]}");
-                            Console.WriteLine($"Table card: {Table[i][0]}");
-                            Console.WriteLine(Beats(player[j], Table[i][0]));
                             Defend(Table.IndexOf(Table[i]), j);
                             View();
                             break;
