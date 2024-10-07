@@ -53,40 +53,102 @@ class Durak
         }  
     }
 
-    public async Task PlayRound() {
-        Task[] tasks = new Task[playerList.Length];
-
-    }
-
 
     private async Task GetMove() {
-        // Player is the initial attacker
-        if (Turn == 0) {
-            Console.WriteLine("Which card would you like to play?");
-            int cardIndex = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine($"You attack with {you[cardIndex]}");
-            Attack(you, cardIndex);
-        } else { // Player is the defender
-            if (Turn == 1) {
-                Console.WriteLine("Which attack are you fending off?");
-                View();
-                int attackIndex = Convert.ToInt32(Console.ReadLine());
+        int cardIndex = -2;
+        switch (Turn) {
+            case 0: // Player is initial attacker
                 Console.WriteLine("Which card would you like to play?");
-                Console.WriteLine(you);
-                int cardIndex;
+                cardIndex = await ChooseCard();
+                Console.WriteLine($"You attack with {you[cardIndex]}");
+                Attack(you, cardIndex);
+                break;
+
+            case 1: // Player is defender
+                int attackIndex = await ChooseAttack();
+                if (attackIndex == -1) {
+                    Console.WriteLine("You pass");
+                    return;
+                }
+
                 bool successfulDefense = false;
                 while (!successfulDefense) {
-                    cardIndex = Convert.ToInt32(Console.ReadLine());
+                    cardIndex = await ChooseCard(true);
                     successfulDefense = Beats(you[cardIndex], Table[attackIndex][0]);
                     if (!successfulDefense) {
                         Console.WriteLine("You must play a card that beats the attack");
-                    }
+                    } 
                 }
-            } else {
-                Console.WriteLine("Which card would you like to play?");
-                int cardIndex = Convert.ToInt32(Console.ReadLine());
-                Attack(playerList[2], cardIndex);
+                Defend(attackIndex, cardIndex); 
+                break;
+
+                default: // Player is an attacker
+                    Console.WriteLine("Which card would you like to play?");
+                    cardIndex = await ChooseCard();
+                    bool successfulAttack = false;
+
+                    foreach (Card?[] attack in Table) {
+                        if (you[cardIndex].rank == attack[0]?.rank) {
+                            Console.WriteLine($"You attack with {you[cardIndex]}");
+                            Attack(you, cardIndex);
+                            successfulAttack = true;
+                            break;
+                        }
+
+                        if (!attack[1].Equals(null) && you[cardIndex].rank == attack[1]?.rank) {
+                            Console.WriteLine($"You attack with {you[cardIndex]}");
+                            Attack(you, cardIndex);
+                            successfulAttack = true;
+                            break;
+                        }
+                    }
+                    if (!successfulAttack) {
+                        Console.WriteLine("That card can't be played!");
+                    }
+                break;
+        }
+    }
+
+    // Lets me use Console.ReadLine() asynchronously (very niffty)
+    private static async Task<string?> AsyncReadLine() {
+        return await Task.Run(() => Console.ReadLine());
+    } 
+
+    private async Task<int> ChooseCard(bool returnable = false) {
+        if (returnable) Console.WriteLine("Which card would you like to play? (Press z to return)");
+        else Console.WriteLine("Which card would you like to play?");
+        Console.WriteLine(you);
+        string? rawInput = await AsyncReadLine();
+
+        if(rawInput == "z" || rawInput == "Z") {
+            return -1;
+        } else {
+            bool validInput = Int32.TryParse(rawInput, out int cardIndex);
+            if (!validInput || cardIndex > you.Hand.Count() || cardIndex <= 0) {
+                Console.WriteLine("Invalid card index");
+                cardIndex = await ChooseCard();
             }
+            cardIndex--;
+            return cardIndex;
+        }
+    }
+
+
+
+    private async Task<int> ChooseAttack() {
+        Console.WriteLine("Which attack are you fending off? (Press enter to pass)");
+        await Task.Delay(1000);
+        View();
+        string? rawInput = await AsyncReadLine();
+        if (rawInput == "") {
+            return -1;
+        } else {
+            int attackIndex = Convert.ToInt32(rawInput);
+            while (attackIndex > Table.Count && attackIndex <= 0) {
+                Console.WriteLine("Invalid attack index");
+                attackIndex = Convert.ToInt32(Console.ReadLine());
+            }
+            return attackIndex;
         }
     }
     
