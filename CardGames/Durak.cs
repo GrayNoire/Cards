@@ -1,21 +1,20 @@
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
-
-enum Move { }
 
 class Durak 
 {
     //private bool gameRunning = true;
     private string Winner;
-    private static Random rng = new Random();
-    private Deck deck;
-    private Deck discard;
-    private Player you;
-    private Player[] playerList;
+    private readonly static Random rng = new();
+    private readonly Deck deck;
+    private readonly Deck discard;
+    private readonly Player you;
+    private readonly Player[] playerList;
     private List<Card?[]> Table;
     public static Suit Trump;
     private int Turn;
+
+    public string Winner1 => Winner;
 
     public Durak(int numPlayers) {
         Winner = "";
@@ -40,25 +39,43 @@ class Durak
     }
 
     public async Task Play() {
-        while (Winner == "") {
+        Task[] tasks = new Task[playerList.Length];
+        
+        while (Winner1 == "") {
             // Console.Clear();
             Console.WriteLine($"Trump: {Trump}");
             Console.WriteLine($"It's {playerList[Turn].Name}'s turn to attack\n");
 
-            Turn = 0;
-            bool cant = await GetAiInput(playerList[0]);
-            // Turn = 1;
-            await GetAiInput(playerList[1]);
-            break;
+            foreach (Player player in playerList) {
+                if (player.Hand.Count() == 0) {
+                    Console.WriteLine($"{player.Name} has no cards left");
+                    Winner = player.Name;
+                } else {
+                    player.StartedTurn = false;
+                }
+            }
+
+            PlayTurns(tasks);
+
+            
         }  
     }
 
 
-    private async Task GetMove() {
+    private async void PlayTurns(Task[] tasks) {
+        tasks[0] = YourMove();
+        for (int i = 1; i < playerList.Length; i++) {
+            tasks[i] = GetAiInput(playerList[i]);
+        }
+
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task YourMove() {
         int cardIndex = -2;
         switch (Turn) {
             case 0: // Player is initial attacker
-                Console.WriteLine("Which card would you like to play?");
+                //Console.WriteLine("Which card would you like to play?");
                 cardIndex = await ChooseCard();
                 Console.WriteLine($"You attack with {you[cardIndex]}");
                 Attack(you, cardIndex);
@@ -75,7 +92,12 @@ class Durak
                 while (!successfulDefense) {
                     cardIndex = await ChooseCard(true);
                     successfulDefense = Beats(you[cardIndex], Table[attackIndex][0]);
-                    if (!successfulDefense) {
+
+                    if (cardIndex == -1) {
+                        Console.WriteLine("You return");
+                        return;
+                    }
+                    else if (!successfulDefense) {
                         Console.WriteLine("You must play a card that beats the attack");
                     } 
                 }
@@ -118,6 +140,7 @@ class Durak
         if (returnable) Console.WriteLine("Which card would you like to play? (Press z to return)");
         else Console.WriteLine("Which card would you like to play?");
         Console.WriteLine(you);
+
         string? rawInput = await AsyncReadLine();
 
         if(rawInput == "z" || rawInput == "Z") {
@@ -146,7 +169,8 @@ class Durak
             int attackIndex = Convert.ToInt32(rawInput);
             while (attackIndex > Table.Count && attackIndex <= 0) {
                 Console.WriteLine("Invalid attack index");
-                attackIndex = Convert.ToInt32(Console.ReadLine());
+                string? input = await AsyncReadLine();
+                attackIndex = Convert.ToInt32(input);
             }
             return attackIndex;
         }
@@ -155,69 +179,51 @@ class Durak
 
     // Handles the AI's moves
     // Returns true if the AI successfully attacks or defends
-    private async Task<bool> GetAiInput(Player player) {
-        await Task.Delay(1000);
+    private async Task<int> GetAiInput(Player player) {
 
         // Player is the initial attacker
         if (Turn == player.TurnId && !player.StartedTurn) {
             Console.WriteLine($"{player.Name} is attacking");
             player.StartedTurn = true;
             int cardIndex = rng.Next(0, player.Hand.Count());
-            Attack(player, cardIndex);
-            View();
-            return true;
+            return cardIndex;
         }
 
         // Player defends
         else if ((Turn+1) % playerList.Length == player.TurnId) {
             Console.WriteLine($"{player.Name} is defending");
-            bool successfulDefense = false;
-            for(int i = 0; i < Table.Count; i++) {
-                if (Table[i][1].Equals(null)) {
-                    for (int j = 0; j < player.Hand.Count(); j++) {
-                        if (Beats(player[j], Table[i][0])) {
-                            Defend(Table.IndexOf(Table[i]), j);
-                            View();
-                            break;
-                        }
-                    }
-                } 
-            }
-
             foreach (Card?[] attack in Table) {
                 if (attack[1].Equals(null)) {
-                    successfulDefense = false;
+                    for (int i = 0; i < player.Hand.Count(); i++) {
+                        if (Beats(player[i], attack[0])) {
+                            return i;
+                        }
+                    }
                 }
             }
-            successfulDefense = true;
-
-            if (!successfulDefense) {
-                Console.WriteLine($"{player.Name} can't respond");
-            }
-            return successfulDefense;
+            return -1;
         }
 
-        // Subsequent attacks
+        // Subsequent attacks 
         else {
-            bool attacked = false;
             foreach (Card?[] attack in Table) {
                 if (FullAttack(attack)) {
                     for (int i = 0; i < player.Hand.Count(); i++) {
-                        if (attack[0]?.rank == player[i].rank){ Attack(player, i); attacked = true; }
-                        if (attack[1]?.rank == player[i].rank) { Attack(player, i); attacked = true; }
+                        if (attack[0]?.rank == player[i].rank) { return i; }
+                        if (attack[1]?.rank == player[i].rank) { return i; }
                     }
-                } else {
+                }
+                else {
                     for (int i = 0; i < player.Hand.Count(); i++) {
-                        if (attack[0]?.rank == player[i].rank) { Attack(player, i); attacked = true; }
+                        if (attack[0]?.rank == player[i].rank) { return i; }
                     }
                 }
             }
-            if(!attacked) { Console.WriteLine($"{player.Name} passes"); }
-            return attacked;
+            return -1;
         }
     }
 
-    public bool FullAttack(Card?[] attack) {
+    public static bool FullAttack(Card?[] attack) {
         if (attack[1].Equals(null)) {
             return false;
         } else {
