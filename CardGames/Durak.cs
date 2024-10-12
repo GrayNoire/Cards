@@ -40,6 +40,8 @@ class Durak
 
     public async Task Play() {
         Task[] tasks = new Task[playerList.Length];
+        int[] taskResults = new int[playerList.Length];
+        bool passTurn = false;
         
         while (Winner1 == "") {
             // Console.Clear();
@@ -55,15 +57,19 @@ class Durak
                 }
             }
 
-            PlayTurns(tasks);
+            while (!passTurn) {
+                await PlayTurns(tasks);
+                taskResults = tasks.Select<Task, int>(task => task.Result).ToArray();
+            }
+            await PlayTurns(tasks);
 
             
         }  
     }
 
 
-    private async void PlayTurns(Task[] tasks) {
-        tasks[0] = YourMove();
+    private async Task PlayTurns(Task<int>[] tasks) {
+        tasks[0] = GetYourMove();
         for (int i = 1; i < playerList.Length; i++) {
             tasks[i] = GetAiInput(playerList[i]);
         }
@@ -71,22 +77,28 @@ class Durak
         await Task.WhenAll(tasks);
     }
 
-    private async Task YourMove() {
+    // Gets the player's move
+    private async Task<int> GetYourMove() {
         int cardIndex = -2;
-        switch (Turn) {
+        int temp = Turn; 
+
+        if (you.StartedTurn) {
+            Turn = -1; // Temporary, so the switch goes to default
+        }
+
+        switch(Turn) {
             case 0: // Player is initial attacker
-                //Console.WriteLine("Which card would you like to play?");
+                you.StartedTurn = true;
                 cardIndex = await ChooseCard();
-                Console.WriteLine($"You attack with {you[cardIndex]}");
-                Attack(you, cardIndex);
                 break;
 
             case 1: // Player is defender
                 int attackIndex = await ChooseAttack();
                 if (attackIndex == -1) {
-                    Console.WriteLine("You pass");
-                    return;
-                }
+                    Console.WriteLine("You pass your turn");
+                    cardIndex = -1;
+                    break;
+                } 
 
                 bool successfulDefense = false;
                 while (!successfulDefense) {
@@ -95,40 +107,45 @@ class Durak
 
                     if (cardIndex == -1) {
                         Console.WriteLine("You return");
-                        return;
-                    }
-                    else if (!successfulDefense) {
+                        cardIndex = await GetYourMove();
+                    } else if (!successfulDefense) {
                         Console.WriteLine("You must play a card that beats the attack");
-                    } 
+                    }
                 }
-                Defend(attackIndex, cardIndex); 
                 break;
 
                 default: // Player is an attacker
-                    Console.WriteLine("Which card would you like to play?");
                     cardIndex = await ChooseCard();
                     bool successfulAttack = false;
 
-                    foreach (Card?[] attack in Table) {
-                        if (you[cardIndex].rank == attack[0]?.rank) {
-                            Console.WriteLine($"You attack with {you[cardIndex]}");
-                            Attack(you, cardIndex);
-                            successfulAttack = true;
+                    while(!successfulAttack) {
+
+                        if (cardIndex == -1) {
+                            Console.WriteLine("You pass");
+                            cardIndex = -1;
                             break;
                         }
 
-                        if (!attack[1].Equals(null) && you[cardIndex].rank == attack[1]?.rank) {
-                            Console.WriteLine($"You attack with {you[cardIndex]}");
-                            Attack(you, cardIndex);
-                            successfulAttack = true;
-                            break;
+                        foreach (Card?[] attack in Table) {
+                            if (you[cardIndex].rank == attack[0]?.rank) { 
+                                successfulAttack = true;
+                            }
+
+                            if (!attack[1].Equals(null) && you[cardIndex].rank == attack[1]?.rank) {
+                                successfulAttack = true;
+                            }
+                        }
+
+                        if (!successfulAttack) {
+                            Console.WriteLine("That card can't be played!");
+                            cardIndex = await ChooseCard();
                         }
                     }
-                    if (!successfulAttack) {
-                        Console.WriteLine("That card can't be played!");
-                    }
-                break;
+                    break;
         }
+
+        Turn = temp;
+        return cardIndex;
     }
 
     // Lets me use Console.ReadLine() asynchronously (very niffty)
@@ -180,6 +197,7 @@ class Durak
     // Handles the AI's moves
     // Returns true if the AI successfully attacks or defends
     private async Task<int> GetAiInput(Player player) {
+        await Task.Delay(1000);
 
         // Player is the initial attacker
         if (Turn == player.TurnId && !player.StartedTurn) {
