@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Linq;
 
 class Durak 
 {
@@ -39,7 +40,7 @@ class Durak
     }
 
     public async Task Play() {
-        Task[] tasks = new Task[playerList.Length];
+        Task<int>[] tasks = new Task<int>[playerList.Length];
         int[] taskResults = new int[playerList.Length];
         bool passTurn = false;
         
@@ -59,11 +60,12 @@ class Durak
 
             while (!passTurn) {
                 await PlayTurns(tasks);
-                taskResults = tasks.Select<Task, int>(task => task.Result).ToArray();
+                taskResults = tasks.Select(task => ((Task<int>)task).Result).ToArray();
+                if (taskResults.All(n => n == -1)) {
+                    passTurn = true;
+                }
             }
             await PlayTurns(tasks);
-
-            
         }  
     }
 
