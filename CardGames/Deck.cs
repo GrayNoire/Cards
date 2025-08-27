@@ -49,25 +49,40 @@ class Deck
         return cards.Count;
     }
 
-    public Deck(string type = "standard") {
-        if (type == "standard") {
-            for (int suit = 0; suit < 4; suit++) {
-                for (int rank = 0; rank < 13; rank++) {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Deck"/> class.
+    /// </summary>
+    /// <param name="type">Specifies the type of deck to create</param>
+    /// <remarks>
+    /// Supported deck types: standard, durak, hand
+    /// </remarks>
+    public Deck(string type = "standard")
+    {
+        if (type == "standard")
+        {
+            for (int suit = 0; suit < 4; suit++)
+            {
+                for (int rank = 0; rank < 13; rank++)
+                {
                     cards.Add(new Card((Suit)suit, (Rank)rank));
                 }
             }
         }
 
-        if (type == "durak") {
-            for (int suit = 0; suit < 4; suit++) {
+        if (type == "durak")
+        {
+            for (int suit = 0; suit < 4; suit++)
+            {
                 cards.Add(new Card((Suit)suit, Rank.Ace));
-                for (int rank = 5; rank < 13; rank++) {
+                for (int rank = 5; rank < 13; rank++)
+                {
                     cards.Add(new Card((Suit)suit, (Rank)rank));
                 }
             }
         }
 
-        if (type == "hand") {
+        if (type == "hand")
+        {
             cards = new List<Card>();
         }
     }

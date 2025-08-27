@@ -13,12 +13,12 @@ struct Card {
 
     public Card(string suit, int rank) {
         this.suit = (Suit)Enum.Parse(typeof(Suit), suit);
-        this.rank = (Rank)rank;
+        this.rank = (Rank)(rank-1);
     }
 
     public Card(Suit suit, int rank) {
         this.suit = suit;
-        this.rank = (Rank)rank;
+        this.rank = (Rank)(rank-1);
     }
 
     public override string ToString() {

@@ -20,11 +20,11 @@ class Player
 
     public Player()
     {
+        playerCount++;
         Name = $"Player {playerCount}";
         Hand = new Deck("hand");
         StartedTurn = false;
-        TurnId = playerCount;
-        playerCount++;
+        TurnId = playerCount - 1;
     }
 
     public Player(string name) : this() {

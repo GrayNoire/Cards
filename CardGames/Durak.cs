@@ -14,8 +14,7 @@ class Durak
     private List<Card?[]> Table;
     public static Suit Trump;
     private int Turn;
-
-    public string Winner1 => Winner;
+    
 
     public Durak(int numPlayers) {
         Winner = "";
@@ -35,6 +34,7 @@ class Durak
         Turn = FindFirstTurn();
 
         Deal();
+        // For debugging - DELETE
         Console.WriteLine(playerList[0]);
         Console.WriteLine(playerList[1]);
     }
@@ -44,10 +44,16 @@ class Durak
         int[] taskResults = new int[playerList.Length];
         bool passTurn = false;
         
-        while (Winner1 == "") {
+        while (Winner == "") {
             // Console.Clear();
             Console.WriteLine($"Trump: {Trump}");
-            Console.WriteLine($"It's {playerList[Turn].Name}'s turn to attack\n");
+            if (Turn == 0) {
+                Console.WriteLine("It's your turn to attack\n");
+            }
+            else {
+                Console.WriteLine($"It's {playerList[Turn].Name}'s turn to attack\n");
+            }
+                
 
             foreach (Player player in playerList) {
                 if (player.Hand.Count() == 0) {
@@ -160,13 +166,17 @@ class Durak
         else Console.WriteLine("Which card would you like to play?");
         Console.WriteLine(you);
 
-        string? rawInput = await AsyncReadLine();
+        string? rawInput = await AsyncReadLine();        
 
-        if(rawInput == "z" || rawInput == "Z") {
+        if (rawInput == "z" || rawInput == "Z")
+        {
             return -1;
-        } else {
+        }
+        else
+        {
             bool validInput = Int32.TryParse(rawInput, out int cardIndex);
-            if (!validInput || cardIndex > you.Hand.Count() || cardIndex <= 0) {
+            if (!validInput || cardIndex > you.Hand.Count() || cardIndex <= 0)
+            {
                 Console.WriteLine("Invalid card index");
                 cardIndex = await ChooseCard();
             }
