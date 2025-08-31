@@ -24,4 +24,6 @@ await game.Play();
 // Task task1 = asyncPrint();
 // Task task2 = waiting();
 
-// await Task.WhenAll(task1, task2);
+// await Task.WhenAll(task1, task2);\
+
+// Calls the Beats function from Durak

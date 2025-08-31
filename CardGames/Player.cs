@@ -23,7 +23,7 @@ class Player
         playerCount++;
         Name = $"Player {playerCount}";
         Hand = new Deck("hand");
-        StartedTurn = false;
+        //StartedTurn = false;
         TurnId = playerCount - 1;
     }
 
